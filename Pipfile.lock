@@ -252,11 +252,11 @@
         },
         "limeutils": {
             "hashes": [
-                "sha256:5df6ed18f1b642a8183095842d5233c0e7a5877051c367ee05563ffbb31ffbe8",
-                "sha256:c5c9a0e9d3f0983c2a2ad1e96b0198a2d9eb08794bedf6e64a17f5125d5ce5ef"
+                "sha256:7489ed00aaebca1be7312dd7d99ec12ded901a378ed5a345be4f120899b7d367",
+                "sha256:a1bf725407170bcaffd764ad41401407e3a78f888a877e33f5a0dcf113577a4f"
             ],
             "index": "pypi",
-            "version": "==0.2.2"
+            "version": "==0.2.4"
         },
         "makefun": {
             "hashes": [
