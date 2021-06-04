@@ -39,8 +39,6 @@ class Option(SharedMixin, models.Model):
     deleted_at = fields.DatetimeField(null=True)
     updated_at = fields.DatetimeField(auto_now=True)
 
-    full = Manager()
-
     class Meta:
         table = 'core_option'
         manager = ActiveManager()
@@ -51,7 +49,7 @@ class Option(SharedMixin, models.Model):
 
 class Taxonomy(DTMixin, SharedMixin, models.Model):
     name = fields.CharField(max_length=191)
-    type = fields.CharField(max_length=20)
+    tier = fields.CharField(max_length=20)
     sort = fields.SmallIntField(default=100)
     author = fields.ForeignKeyField('models.UserMod', related_name='tax_of_author')
     parent = fields.ForeignKeyField('models.Taxonomy', related_name='tax_of_parent')
