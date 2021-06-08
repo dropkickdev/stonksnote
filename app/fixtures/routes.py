@@ -29,16 +29,28 @@ options = {
         'author': 'DropkickDev',
         'last_update': '',
     },
-    'user': {
-        'theme': 'Light',
-        'email_notifications': True,
-        'language': 'en',
-    },
     'admin': {
         'access_token': s.ACCESS_TOKEN_EXPIRE,
         'refresh_token': s.REFRESH_TOKEN_EXPIRE,
         'refresh_token_cutoff': s.REFRESH_TOKEN_CUTOFF,
         'verify_email': s.VERIFY_EMAIL
+    },
+    
+    # Diff per user
+    'account': {
+        'theme': 'Light',
+        'email_notifications': True,
+        'language': 'en',
+        
+        'tp': 0.12,
+        'stoploss': 0.08,
+        'rrr': 2,
+        'max_PHP': 100_000,
+        'max_USD': 2_000,
+    },
+    'alert': {
+        'tp': True,
+        'stoploss': True,
     }
 }
 
@@ -135,7 +147,7 @@ async def create_options():
         ll = []
         for cat, data in options.items():
             for name, val in data.items():
-                if cat == 'user':
+                if cat == 'account':
                     for user in users:
                         ll.append(Option(name=name, value=val, user_id=user.id))
                 elif cat == 'site':
@@ -147,6 +159,21 @@ async def create_options():
     except Exception:
         return False
 
+@fixturerouter.get('/taxonomy', summary='Taxonomy entries')
+async def create_taxonomy():
+    try:
+        # TODO: Take data from choices
+        pass
+    except Exception:
+        return False
+
+
+@fixturerouter.get('/collection', summary='Collections to group equities into')
+async def create_collection():
+    try:
+        pass
+    except Exception:
+        return False
 
 
 
