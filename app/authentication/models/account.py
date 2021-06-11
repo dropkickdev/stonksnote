@@ -32,12 +32,16 @@ class UserMod(DTMixin, TortoiseBaseUserModel):
     zipcode = fields.CharField(max_length=20, default='')
     timezone = fields.CharField(max_length=10, default='+00:00')
     website = fields.CharField(max_length=20, default='')
+    currency = fields.CharField(max_length=5, default='')
     last_login = fields.DatetimeField(null=True)
 
     groups = fields.ManyToManyField('models.Group', related_name='group_users',
                                     through='auth_user_groups', backward_key='user_id')
     permissions = fields.ManyToManyField('models.Permission', related_name='permission_users',
                                          through='auth_user_permissions', backward_key='user_id')
+    # Project-specific
+    brokers = fields.ManyToManyField('models.Broker', related_name='broker_users',
+                                     through='stocks_userbrokers', backward_key='user_id')
 
     full = Manager()
 
