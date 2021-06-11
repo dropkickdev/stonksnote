@@ -18,6 +18,7 @@ from .authentication.models.pydantic import *
 from .authentication.Mailman import *
 from .authentication.fapiusers import *
 
+from app.fixtures.routes import account_taxonomy, options as options_dict
 
 userdb = TortoiseUDB(UserDB, UserMod, include=['username', 'timezone'], alternate=UserDBComplete)
 jwtauth = JWTAuthentication(secret=s.SECRET_KEY, lifetime_seconds=s.ACCESS_TOKEN_EXPIRE)
@@ -36,12 +37,26 @@ async def register_callback(user: UserDB, _: Response):
     """
     # Set the groups for this new user
     groups = await Group.filter(name__in=s.USER_GROUPS)
-    user = await UserMod.get(pk=user.id).only('id', 'email')
-    await user.groups.add(*groups)
+    usermod = await UserMod.get(pk=user.id).only('id', 'email')
+    await usermod.groups.add(*groups)
+    
+    # TODO: Check this
+    # Set the taxonomy
+    ll = []
+    for tax_dict in account_taxonomy:
+        ll.append(Taxonomy(**tax_dict, author=usermod))
+    await Taxonomy.bulk_create(ll)
+    
+    # TODO: Check this
+    # Set the options
+    ll = []
+    for key, val in options_dict.get('account').items():
+        ll.append(Option(name=key, value=val, user=usermod))
+    await Option.bulk_create(ll)
     
     if s.VERIFY_EMAIL:
         await send_registration_email(
-            user,
+            usermod,
             'app/authentication/templates/emails/account/registration_verify_text.jinja2',
             'app/authentication/templates/emails/account/registration_verify_html.jinja2'
         )
