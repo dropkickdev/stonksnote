@@ -40,8 +40,11 @@ class UserMod(DTMixin, TortoiseBaseUserModel):
     permissions = fields.ManyToManyField('models.Permission', related_name='permission_users',
                                          through='auth_user_permissions', backward_key='user_id')
     # Project-specific
+    balance = fields.DecimalField(max_digits=13, decimal_places=2, default=0)
     brokers = fields.ManyToManyField('models.Broker', related_name='broker_users',
                                      through='stocks_userbrokers', backward_key='user_id')
+    equities = fields.ManyToManyField('models.Equity', related_name='equity_users',
+                                      through='stocks_userequities', backward_key='user_id')
 
     full = Manager()
 

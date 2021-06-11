@@ -31,7 +31,7 @@ class UserEquities(models.Model):
     created_at = fields.DatetimeField(auto_now_add=True)
 
     groups = fields.ManyToManyField('models.Taxonomy', related_name='userequities',
-                                    through='stocks_userequities_groups',
+                                    through='stocks_userequitiesgroups',
                                     backward_key='userequity_id')
     
     full = Manager()
@@ -47,7 +47,6 @@ class UserEquities(models.Model):
 
 class Broker(DTMixin, SharedMixin, models.Model):
     name = fields.CharField(max_length=191)
-    
     rating = fields.FloatField(max_digits=2, decimal_places=1, default=0)
     email = fields.CharField(max_length=191, default='')
     number = fields.CharField(max_length=191, default='')
@@ -66,91 +65,87 @@ class Broker(DTMixin, SharedMixin, models.Model):
 
 
 class Trade(DTMixin, SharedMixin, models.Model):
-    status = fields.CharField(max_length=20)
     equity = fields.ForeignKeyField('models.Equity', related_name='equity_trades')
-    note = fields.TextField()
+    broker = fields.ForeignKeyField('models.Broker', related_name='broker_trades', null=True)
+    status = fields.CharField(max_length=20)
     
     shares = fields.IntField(default=0)
     entrypoint = fields.DecimalField(max_digits=10, decimal_places=4, default=0)
-    takeprofit = fields.DecimalField(max_digits=10, decimal_places=4, default=0)
     stoploss = fields.DecimalField(max_digits=10, decimal_places=4, default=0)
-    rrr = fields.DecimalField(max_digits=10, decimal_places=2, default=0)
-    
+    takeprofit = fields.DecimalField(max_digits=10, decimal_places=4, default=0)
     gross = fields.DecimalField(max_digits=10, decimal_places=4, default=0)
+    
     fees = fields.JSONField(null=True)
     total = fields.DecimalField(max_digits=10, decimal_places=4, default=0)
     gainloss = fields.DecimalField(max_digits=10, decimal_places=4)
     
     meta = fields.JSONField(null=True)
-    broker = fields.ForeignKeyField('models.Broker', related_name='broker_trades', null=True)
     author = fields.ForeignKeyField('models.UserMod', related_name='author_trades')
-    
-    is_favorite = fields.BooleanField(default=False)
-    is_public = fields.BooleanField(default=False)
-    is_active = fields.BooleanField(default=False)
-    
+
+    is_action = fields.BooleanField(default=False)          # For action
+    resolved_at = fields.DatetimeField(null=True)           # For action
+
+    notes = fields.ManyToManyField('models.Note', related_name='note_trades',
+                                   through='stocks_tradenotes', backward_key='trade_id')
     tags = fields.ManyToManyField('models.Taxonomy', related_name='tag_trades',
-                                  through='stocks_trade_tags', backward_key='trade_id')
-    groups = fields.ManyToManyField('models.Taxonomy', related_name='group_trades',
-                                    through='stocks_trade_groups', backward_key='trade_id')
+                                  through='stocks_tradetags', backward_key='trade_id')
+    uploads = fields.ManyToManyField('models.Media', related_name='upload_trades',
+                                     through='stocks_tradeuploads', backward_key='trade_id')
     
     class Meta:
         table = 'stocks_trade'
         manager = ActiveManager()
         
     def __str__(self):
-        return f'{self.equity}: {self.shares}'
-    
-    @property
-    def get_total(self):
-        total = self.gross
-        for i in self.fees.values():
-            total += i
-        return total
+        return f'{self.id}:{self.equity}:{self.shares} shares'              # noqa
 
 
-class Action(DTMixin, SharedMixin, models.Model):
-    action = fields.CharField(max_length=20)
-    equity = fields.ForeignKeyField('models.Equity', related_name='actions')
-    implement = fields.DatetimeField(null=True)
+class Media(DTMixin, SharedMixin, models.Model):
+    path = fields.CharField(max_length=256)
+    trade = fields.ForeignKeyField('models.Trade', related_name='trade_medias')
+    source = fields.ForeignKeyField('models.Media', related_name='media_medias', null=True)
+    status = fields.CharField(max_length=20)        # Set original or modified
+    author = fields.ForeignKeyField('models.UserMod', related_name='author_medias')
+
+    class Meta:
+        table = 'stocks_media'
+        manager = ActiveManager()
+        
+    def __str__(self):
+        return modstr(self, 'path')
     
-    entrypoint = fields.DecimalField(max_digits=10, decimal_places=4, default=0)
-    stoploss = fields.DecimalField(max_digits=10, decimal_places=4, default=0)
-    takeprofit = fields.DecimalField(max_digits=10, decimal_places=4, default=0)
-    rrr = fields.DecimalField(max_digits=10, decimal_places=4, default=0)
-    opening = fields.DecimalField(max_digits=10, decimal_places=4, default=0)
-    closing = fields.DecimalField(max_digits=10, decimal_places=4, default=0)
-    
-    note = fields.CharField(max_length=199)
+
+class Note(DTMixin, SharedMixin, models.Model):
+    note = fields.TextField()
     status = fields.CharField(max_length=20)
-    is_completed = fields.DatetimeField(null=True)
+    author = fields.ForeignKeyField('models.UserMod', related_name='author_notes')
     
     class Meta:
-        table = 'stocks_action'
+        table = 'stocks_note'
         manager = ActiveManager()
-    
+
     def __str__(self):
-        return self.action
-    
-# class Note(DTMixin, SharedMixin, models.Model):
-#     note = fields.TextField()
-#     equity = fields.ForeignKeyField('models.Equity', related_name='equity_notes')
-#     author = fields.ForeignKeyField('models.UserMod', related_name='author_notes')
-#
-#     status = fields.ManyToManyField('models.Taxonomy', related_name='tag_notes',
-#                                     through='stocks_note_status', backward_key='note_id')
-#     class Meta:
-#         table = 'stocks_note'
-#         manager = ActiveManager()
-#
-#     def __str__(self):
-#         split = self.note.split()
-#         words = 10
-#         if len(split) >= words:
-#             return f'{" ".join(split[:words])}...'
-#         return self.note
-#
-#
+        split = self.note.split()
+        words = 10
+        if len(split) >= words:
+            return f'{" ".join(split[:words])}...'
+        return self.note
+
+
+class Transaction(DTMixin, SharedMixin, models.Model):
+    status = fields.CharField(max_length=20)                        # Buy/Sell/Others
+    amount = fields.DecimalField(max_digits=13, decimal_places=2, default=0)
+    trade = fields.ForeignKeyField('models.Trade', related_name='transactions', null=True)
+    author = fields.ForeignKeyField('models.UserMod', related_name='author_transaction')
+
+    class Meta:
+        table = 'stocks_transaction'
+        manager = ActiveManager()
+        
+    def __str__(self):
+        return f'{self.id}:{self.status}'                                   # noqa
+
+
 # class TradeNote(DTMixin, models.Model):
 #     trade = fields.ForeignKeyField('models.Trade', related_name='tradenotes')
 #     note = fields.ForeignKeyField('models.Note', related_name='tradenotes')
