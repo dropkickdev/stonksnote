@@ -3,8 +3,13 @@ from enum import Enum
 
 
 class TradeStatusChoices(str, Enum):
-    plan = _('Planning')
-    wait = _('Wait and see')
-    buy = _('Prepare to BUY')
-    sell = _('Prepare to SELL')
-    late = _('Too late to enter')
+    PLAN = 'PLAN'
+    LATE = 'LATE'
+    REVISIT = 'REVISIT'
+
+
+class ActionStatusChoices(str, Enum):
+    BUY = 'BUY'
+    SELL = 'SELL'
+    WATCH = 'WATCH'
+    CANCELLED = 'CANCELLED'

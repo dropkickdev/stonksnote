@@ -4,8 +4,12 @@ from fastapi_users.user import get_create_user
 from pydantic import EmailStr
 from tortoise.transactions import in_transaction
 
+from app.cache import red
 from app.settings import settings as s
-from app.auth import userdb, UserDB, UserCreate, UserMod, UserPermissions, Group, Permission, Option
+from app.auth import (
+    userdb, UserDB, UserCreate,
+    UserMod, UserPermissions, Group, Permission, Option, Taxonomy as Tax
+)
 from app.tests.data import VERIFIED_EMAIL_DEMO, UNVERIFIED_EMAIL_DEMO
 from app.fixtures.permissions import ContentGroup, AccountGroup, StaffGroup, AdminGroup, NoaddGroup
 
@@ -42,16 +46,45 @@ options = {
         'email_notifications': True,
         'language': 'en',
         
-        'tp': 0.12,
+        'takeprofit': 0.12,
         'stoploss': 0.08,
-        'rrr': 2,
+        'rrr': 2.5,
         'max_PHP': 100_000,
         'max_USD': 2_000,
+        'rate_USD': 50.0,
+        
+        # # Alerts
+        # 'takeprofit': True,
+        # 'stoploss': True,
     },
-    'alert': {
-        'tp': True,
-        'stoploss': True,
-    }
+}
+taxonomy = {
+    'exchange': [
+        dict(name='PSE', label='Philippine Stock Exchange', is_locked=True),
+        dict(name='SGX', label='Singapore Exchange', is_locked=True),
+        dict(name='NYSE', label='New York Stock Exchange', is_locked=True),
+        dict(name='NYSEP', label='NYSE Preferred Shares', is_locked=True),
+        dict(name='NASDAQ', label='Nasdaq Stock Market', is_locked=True),
+        dict(name='ARCA', label='ARCA & MKT', is_locked=True),
+        dict(name='OTC', label='OTC Markets', is_locked=True),
+        dict(name='FX', label='Forex', is_locked=True),
+        dict(name='CRYPTO', label='Cryptocurrency', is_locked=True),
+    ],
+    'equity_groups': [
+        dict(name='Watchlist', is_locked=True),
+        dict(name='Undecided', is_locked=True),
+    ],
+    'trade_groups': [
+        dict(name='wasted', is_locked=True),
+        dict(name='review', is_locked=True),
+        dict(name='research', is_locked=True),
+    ],
+    'trade_tags': [
+        dict(name='trash', is_locked=True),
+        dict(name='recommended', is_locked=True),
+        dict(name='not-now', is_locked=True),
+        dict(name='invest-soon', is_locked=True),
+    ],
 }
 
 
@@ -104,12 +137,13 @@ async def create_users():
     # from app.auth import userdb
     
     async with in_transaction():
-        # User 1
+        groups = await Group.filter(name__in=s.USER_GROUPS)
+        
+        # User 1: Admin account
         userdata = UserCreate(email=EmailStr(VERIFIED_EMAIL_DEMO), password='pass123')
         create_user = get_create_user(userdb, UserDB)
         created_user = await create_user(userdata, safe=True)
         ret = created_user
-        groups = await Group.filter(name__in=s.USER_GROUPS)
 
         user = await UserMod.get(pk=created_user.id)
         user.is_verified = True
@@ -117,7 +151,6 @@ async def create_users():
         await user.save()
         await user.groups.add(*groups)
         
-        # Perms for User 1
         ll = []
         userperms = await Permission.filter(code__in=enchance_only_perms).only('id')
         for perm in userperms:
@@ -127,18 +160,27 @@ async def create_users():
         # Group or User 1
         # await user.add_group('StaffGroup')
     
-        # User 2
+        # User 2: Common verified account
+        userdata = UserCreate(email=EmailStr('enchance@gmail.com'), password='pass123')
+        create_user = get_create_user(userdb, UserDB)
+        created_user = await create_user(userdata, safe=True)
+
+        user = await UserMod.get(pk=created_user.id)
+        user.is_verified = True
+        await user.save()
+        await user.groups.add(*groups)
+        
+        # User 3: Common unverified account
         userdata = UserCreate(email=EmailStr(UNVERIFIED_EMAIL_DEMO), password='pass123')
         create_user = get_create_user(userdb, UserDB)
         created_user = await create_user(userdata, safe=True)
-        groups = await Group.filter(name__in=s.USER_GROUPS)
         user = await UserMod.get(pk=created_user.id)
         await user.groups.add(*groups)
-    
+
         return ret
 
 
-@fixturerouter.get('/options', summary='Don\'t run if you haven\'t created users yet')
+@fixturerouter.get('/options', summary='Options for each user. Users required via the /users endpoint.')
 async def create_options():
     try:
         users = await UserMod.all().only('id')
@@ -149,31 +191,36 @@ async def create_options():
             for name, val in data.items():
                 if cat == 'account':
                     for user in users:
-                        ll.append(Option(name=name, value=val, user_id=user.id))
+                        ll.append(Option(name=name, value=val, user=user))
                 elif cat == 'site':
-                    ll.append(Option(name=name, value=val))
+                    ll.append(Option(name=name, value=val, is_locked=True))
                 elif cat == 'admin':
-                    ll.append(Option(name=name, value=val, admin_only=True))
+                    ll.append(Option(name=name, value=val, is_locked=True, admin_only=True))
         await Option.bulk_create(ll)
         return True
     except Exception:
         return False
 
-@fixturerouter.get('/taxonomy', summary='Taxonomy entries')
+
+@fixturerouter.get('/taxonomy', summary='Taxonomy entries. Users required via the /users endpoint.')
 async def create_taxonomy():
     try:
-        # TODO: Take data from choices
-        pass
-    except Exception:
-        return False
+        usermod = await UserMod.get(email=VERIFIED_EMAIL_DEMO).only('id')
+        ll = []
+        for tier, val in taxonomy.items():
+            # Create the base
+            await Tax.create(tier='base', name=tier, author=usermod)
+            base = await Tax.get(tier='base', name=tier).only('id')
+            
+            for tax_dict in val:
+                ll.append(Tax(tier=tier, **tax_dict, author=usermod, parent=base))
+                red.set(f'{tier}-{tax_dict.get("name")}', tax_dict, ttl=-1)
+        await Tax.bulk_create(ll)
+        
+        return True
+    except Exception as e:
+        return e
 
-
-@fixturerouter.get('/collection', summary='Collections to group equities into')
-async def create_collection():
-    try:
-        pass
-    except Exception:
-        return False
 
 
 

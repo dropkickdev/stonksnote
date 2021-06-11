@@ -18,7 +18,7 @@ from .authentication.models.pydantic import *
 from .authentication.Mailman import *
 from .authentication.fapiusers import *
 
-from app.fixtures.routes import account_taxonomy, options as options_dict
+from app.fixtures.routes import options as options_dict
 
 userdb = TortoiseUDB(UserDB, UserMod, include=['username', 'timezone'], alternate=UserDBComplete)
 jwtauth = JWTAuthentication(secret=s.SECRET_KEY, lifetime_seconds=s.ACCESS_TOKEN_EXPIRE)
