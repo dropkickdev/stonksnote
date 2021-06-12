@@ -74,17 +74,13 @@ taxonomy = {
         dict(name='Watchlist', is_locked=True),
         dict(name='Undecided', is_locked=True),
     ],
-    'trade_groups': [
-        dict(name='wasted', is_locked=True),
-        dict(name='review', is_locked=True),
-        dict(name='research', is_locked=True),
-    ],
     'trade_tags': [
         dict(name='trash', is_locked=True),
         dict(name='recommended', is_locked=True),
         dict(name='not-now', is_locked=True),
         dict(name='invest-soon', is_locked=True),
     ],
+    'brokers': [],
 }
 
 
@@ -202,24 +198,24 @@ async def create_options():
         return False
 
 
-@fixturerouter.get('/taxonomy', summary='Taxonomy entries. Users required via the /users endpoint.')
-async def create_taxonomy():
-    try:
-        usermod = await UserMod.get(email=VERIFIED_EMAIL_DEMO).only('id')
-        ll = []
-        for tier, val in taxonomy.items():
-            # Create the base
-            await Tax.create(tier='base', name=tier, author=usermod)
-            base = await Tax.get(tier='base', name=tier).only('id')
-            
-            for tax_dict in val:
-                ll.append(Tax(tier=tier, **tax_dict, author=usermod, parent=base))
-                red.set(f'{tier}-{tax_dict.get("name")}', tax_dict, ttl=-1)
-        await Tax.bulk_create(ll)
-        
-        return True
-    except Exception as e:
-        return e
+# @fixturerouter.get('/taxonomy', summary='Taxonomy entries. Users required via the /users endpoint.')
+# async def create_taxonomy():
+#     try:
+#         usermod = await UserMod.get(email=VERIFIED_EMAIL_DEMO).only('id')
+#         ll = []
+#         for tier, val in taxonomy.items():
+#             # Create the base
+#             await Tax.create(tier='base', name=tier, author=usermod)
+#             base = await Tax.get(tier='base', name=tier).only('id')
+#
+#             for tax_dict in val:
+#                 ll.append(Tax(tier=tier, **tax_dict, author=usermod, parent=base))
+#                 red.set(f'{tier}-{tax_dict.get("name")}', tax_dict, ttl=-1)
+#         await Tax.bulk_create(ll)
+#
+#         return True
+#     except Exception as e:
+#         return e
 
 
 

@@ -41,7 +41,7 @@ class UserMod(DTMixin, TortoiseBaseUserModel):
                                          through='auth_user_permissions', backward_key='user_id')
     # Project-specific
     balance = fields.DecimalField(max_digits=13, decimal_places=2, default=0)
-    brokers = fields.ManyToManyField('models.Broker', related_name='broker_users',
+    brokers = fields.ManyToManyField('models.Taxonomy', related_name='broker_users',
                                      through='stocks_userbrokers', backward_key='user_id')
     equities = fields.ManyToManyField('models.Equity', related_name='equity_users',
                                       through='stocks_userequities', backward_key='user_id')

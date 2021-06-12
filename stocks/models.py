@@ -45,28 +45,28 @@ class UserEquities(models.Model):
         return f'{self.user}:{self.equity}'
 
 
-class Broker(DTMixin, SharedMixin, models.Model):
-    name = fields.CharField(max_length=191)
-    rating = fields.FloatField(max_digits=2, decimal_places=1, default=0)
-    email = fields.CharField(max_length=191, default='')
-    number = fields.CharField(max_length=191, default='')
-    url = fields.CharField(max_length=191, default='')
-    country = fields.CharField(max_length=2, default='')
-    
-    is_online = fields.BooleanField(default=True)
-    is_active = fields.BooleanField(default=True)
-    
-    class Meta:
-        table = 'stocks_broker'
-        manager = ActiveManager()
-        
-    def __str__(self):
-        return modstr(self, 'name')
+# class Broker(DTMixin, SharedMixin, models.Model):
+#     name = fields.CharField(max_length=191)
+#     rating = fields.FloatField(max_digits=2, decimal_places=1, default=0)
+#     email = fields.CharField(max_length=191, default='')
+#     number = fields.CharField(max_length=191, default='')
+#     url = fields.CharField(max_length=191, default='')
+#     country = fields.CharField(max_length=2, default='')
+#
+#     is_online = fields.BooleanField(default=True)
+#     is_active = fields.BooleanField(default=True)
+#
+#     class Meta:
+#         table = 'stocks_broker'
+#         manager = ActiveManager()
+#
+#     def __str__(self):
+#         return modstr(self, 'name')
 
 
 class Trade(DTMixin, SharedMixin, models.Model):
     equity = fields.ForeignKeyField('models.Equity', related_name='equity_trades')
-    broker = fields.ForeignKeyField('models.Broker', related_name='broker_trades', null=True)
+    broker = fields.ForeignKeyField('models.Taxonomy', related_name='broker_trades', null=True)
     status = fields.CharField(max_length=20)
     
     shares = fields.IntField(default=0)

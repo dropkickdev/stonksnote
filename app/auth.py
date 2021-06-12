@@ -40,12 +40,12 @@ async def register_callback(user: UserDB, _: Response):
     usermod = await UserMod.get(pk=user.id).only('id', 'email')
     await usermod.groups.add(*groups)
     
-    # TODO: Check this
-    # Set the taxonomy
-    ll = []
-    for tax_dict in account_taxonomy:
-        ll.append(Taxonomy(**tax_dict, author=usermod))
-    await Taxonomy.bulk_create(ll)
+    # # TODO: This is a bug
+    # # Set the taxonomy
+    # ll = []
+    # for tax_dict in account_taxonomy:
+    #     ll.append(Taxonomy(**tax_dict, author=usermod))
+    # await Taxonomy.bulk_create(ll)
     
     # TODO: Check this
     # Set the options
