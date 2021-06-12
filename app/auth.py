@@ -18,7 +18,9 @@ from .authentication.models.pydantic import *
 from .authentication.Mailman import *
 from .authentication.fapiusers import *
 
-from app.fixtures.routes import options as options_dict
+from app.fixtures.fixturesdata import options_dict
+
+
 
 userdb = TortoiseUDB(UserDB, UserMod, include=['username', 'timezone'], alternate=UserDBComplete)
 jwtauth = JWTAuthentication(secret=s.SECRET_KEY, lifetime_seconds=s.ACCESS_TOKEN_EXPIRE)
@@ -47,12 +49,12 @@ async def register_callback(user: UserDB, _: Response):
     #     ll.append(Taxonomy(**tax_dict, author=usermod))
     # await Taxonomy.bulk_create(ll)
     
-    # TODO: Check this
-    # Set the options
-    ll = []
-    for key, val in options_dict.get('account').items():
-        ll.append(Option(name=key, value=val, user=usermod))
-    await Option.bulk_create(ll)
+    # # TODO: Check this
+    # # Set the options
+    # ll = []
+    # for key, val in options_dict.get('account').items():
+    #     ll.append(Option(name=key, value=val, user=usermod))
+    # await Option.bulk_create(ll)
     
     if s.VERIFY_EMAIL:
         await send_registration_email(

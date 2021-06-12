@@ -11,8 +11,8 @@ from app.auth import (
     UserMod, UserPermissions, Group, Permission, Option, Taxonomy as Tax
 )
 from app.tests.data import VERIFIED_EMAIL_DEMO, UNVERIFIED_EMAIL_DEMO
-from app.fixtures.permissions import ContentGroup, AccountGroup, StaffGroup, AdminGroup, NoaddGroup
-
+from app.fixtures.fixturesdata import ContentGroup, AccountGroup, StaffGroup, AdminGroup, NoaddGroup
+from .fixturesdata import taxonomy_dict, options_dict
 
 
 app = FastAPI()
@@ -26,62 +26,7 @@ perms = {
     'NoaddGroup': NoaddGroup,
 }
 enchance_only_perms = ['foo.delete', 'foo.hard_delete']
-options = {
-    'site': {
-        'sitename': s.SITE_NAME,
-        'siteurl': s.SITE_URL,
-        'author': 'DropkickDev',
-        'last_update': '',
-    },
-    'admin': {
-        'access_token': s.ACCESS_TOKEN_EXPIRE,
-        'refresh_token': s.REFRESH_TOKEN_EXPIRE,
-        'refresh_token_cutoff': s.REFRESH_TOKEN_CUTOFF,
-        'verify_email': s.VERIFY_EMAIL
-    },
-    
-    # Diff per user
-    'account': {
-        'theme': 'Light',
-        'email_notifications': True,
-        'language': 'en',
-        
-        'takeprofit': 0.12,
-        'stoploss': 0.08,
-        'rrr': 2.5,
-        'max_PHP': 100_000,
-        'max_USD': 2_000,
-        'rate_USD': 50.0,
-        
-        # # Alerts
-        # 'takeprofit': True,
-        # 'stoploss': True,
-    },
-}
-taxonomy = {
-    'exchange': [
-        dict(name='PSE', label='Philippine Stock Exchange', is_locked=True),
-        dict(name='SGX', label='Singapore Exchange', is_locked=True),
-        dict(name='NYSE', label='New York Stock Exchange', is_locked=True),
-        dict(name='NYSEP', label='NYSE Preferred Shares', is_locked=True),
-        dict(name='NASDAQ', label='Nasdaq Stock Market', is_locked=True),
-        dict(name='ARCA', label='ARCA & MKT', is_locked=True),
-        dict(name='OTC', label='OTC Markets', is_locked=True),
-        dict(name='FX', label='Forex', is_locked=True),
-        dict(name='CRYPTO', label='Cryptocurrency', is_locked=True),
-    ],
-    'equity_groups': [
-        dict(name='Watchlist', is_locked=True),
-        dict(name='Undecided', is_locked=True),
-    ],
-    'trade_tags': [
-        dict(name='trash', is_locked=True),
-        dict(name='recommended', is_locked=True),
-        dict(name='not-now', is_locked=True),
-        dict(name='invest-soon', is_locked=True),
-    ],
-    'brokers': [],
-}
+
 
 
 @fixturerouter.get('/init', summary="Groups, Permissions, and relationships")
@@ -183,7 +128,7 @@ async def create_options():
         if not users:
             return 'foo'
         ll = []
-        for cat, data in options.items():
+        for cat, data in options_dict.items():
             for name, val in data.items():
                 if cat == 'account':
                     for user in users:
@@ -198,24 +143,24 @@ async def create_options():
         return False
 
 
-# @fixturerouter.get('/taxonomy', summary='Taxonomy entries. Users required via the /users endpoint.')
-# async def create_taxonomy():
-#     try:
-#         usermod = await UserMod.get(email=VERIFIED_EMAIL_DEMO).only('id')
-#         ll = []
-#         for tier, val in taxonomy.items():
-#             # Create the base
-#             await Tax.create(tier='base', name=tier, author=usermod)
-#             base = await Tax.get(tier='base', name=tier).only('id')
-#
-#             for tax_dict in val:
-#                 ll.append(Tax(tier=tier, **tax_dict, author=usermod, parent=base))
-#                 red.set(f'{tier}-{tax_dict.get("name")}', tax_dict, ttl=-1)
-#         await Tax.bulk_create(ll)
-#
-#         return True
-#     except Exception as e:
-#         return e
+@fixturerouter.get('/taxonomy', summary='Taxonomy entries. Users required via the /users endpoint.')
+async def create_taxonomy():
+    try:
+        usermod = await UserMod.get(email=VERIFIED_EMAIL_DEMO).only('id')
+        ll = []
+        for tier, val in taxonomy_dict.items():
+            # Create the base
+            await Tax.create(tier='base', name=tier, author=usermod)
+            base = await Tax.get(tier='base', name=tier).only('id')
+
+            for tax_dict in val:
+                ll.append(Tax(tier=tier, **tax_dict, author=usermod, parent=base))
+                red.set(f'{tier}-{tax_dict.get("name")}', tax_dict, ttl=-1)
+        await Tax.bulk_create(ll)
+
+        return True
+    except Exception as e:
+        return e
 
 
 

@@ -1,6 +1,17 @@
 import pytest
 
+from app import ic
+from app.auth import UserMod
 
+
+
+# @pytest.mark.focus
+def test_blank(tempdb, loop, client):
+    async def ab():
+        await tempdb()
+        # x = await UserMod.all().values_list('email', flat=True)
+        # ic(x)
+    loop.run_until_complete(ab())
 
 @pytest.mark.demopages
 # @pytest.mark.skip
