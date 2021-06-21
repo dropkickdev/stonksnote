@@ -49,7 +49,7 @@ class Option(SharedMixin, models.Model):
 
 class Taxonomy(DTMixin, SharedMixin, models.Model):
     name = fields.CharField(max_length=191)
-    tier = fields.CharField(max_length=20)
+    tier = fields.CharField(max_length=20, index=True)
     label = fields.CharField(max_length=191, default='')        # Longer version of name
     description = fields.CharField(max_length=191, default='')
     sort = fields.SmallIntField(default=100)

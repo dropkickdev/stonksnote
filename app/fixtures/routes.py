@@ -1,3 +1,4 @@
+import random
 from redis.exceptions import ResponseError
 from fastapi import APIRouter, FastAPI
 from fastapi_users.user import get_create_user
@@ -145,23 +146,33 @@ async def create_options():
 
 @fixturerouter.get('/taxonomy', summary='Taxonomy entries. Users required via the /users endpoint.')
 async def create_taxonomy():
-    # try:
-    #     usermod = await UserMod.get(email=VERIFIED_EMAIL_DEMO).only('id')
-    #     ll = []
-    #     for tier, val in taxonomy_dict.items():
-    #         # Create the base
-    #         await Tax.create(tier='base', name=tier, author=usermod)
-    #         base = await Tax.get(tier='base', name=tier).only('id')
-    #
-    #         for tax_dict in val:
-    #             ll.append(Tax(tier=tier, **tax_dict, author=usermod, parent=base))
-    #             red.set(f'{tier}-{tax_dict.get("name")}', tax_dict, ttl=-1)
-    #     await Tax.bulk_create(ll)
-    #
-    #     return True
-    # except Exception as e:
-    #     return e
-    pass
+    try:
+        usermod = await UserMod.get(email=VERIFIED_EMAIL_DEMO).only('id')
+        for tier, val in taxonomy_dict.items():
+            fields = isinstance(val, list) and val.pop(0) or {}
+            await Tax.create(tier='base', name=tier, author=usermod, is_locked=True, **fields)
+            base = await Tax.get(tier='base', name=tier).only('id')
+            
+            if isinstance(val, list):
+                ll = []
+                for tax_dict in val:
+                    ll.append(Tax(tier=tier, **tax_dict, author=usermod, parent=base))
+                    # red.set(f'{tier}-{tax_dict["name"]}', tax_dict, ttl=-1)
+                await Tax.bulk_create(ll)
+            elif isinstance(val, dict):
+                for k, v in val.items():
+                    fields = v.pop(0)
+                    await Tax.create(tier=tier, name=k, author=usermod, **fields)
+                    base = await Tax.get(tier=tier, name=k).only('id')
+
+                    nested = []
+                    for i in v:
+                        nested.append(Tax(tier=k, **i, author=usermod, parent=base))
+                        # red.set(f'{k}-{i.get("name")}', i, ttl=-1)
+                    await Tax.bulk_create(nested)
+        return True
+    except Exception as e:
+        return e
 
 
 

@@ -89,7 +89,7 @@ taxonomy_dict = {
     ],
     'stages': {
         'buy_stage': [
-            dict(label='Buying', description='The buying process'),
+            dict(label='Buying', is_locked=True, description='The buying process'),
             
             dict(name='Shortlist', is_locked=True, sort=1,
                  description='Potential stock to BUY'),
@@ -101,7 +101,7 @@ taxonomy_dict = {
                  description='Waiting for the right moment to BUY'),
         ],
         'sell_stage': [
-            dict(label='Selling', description='The selling process'),
+            dict(label='Selling', is_locked=True, description='The selling process'),
             
             dict(name='Shortlist', is_locked=True, sort=1,
                  description='Potential stock to SELL'),
