@@ -44,7 +44,7 @@ class UserMod(DTMixin, TortoiseBaseUserModel):
     brokers = fields.ManyToManyField('models.Taxonomy', related_name='broker_users',
                                      through='stocks_userbrokers', backward_key='user_id')
     equities = fields.ManyToManyField('models.Equity', related_name='equity_users',
-                                      through='stocks_userequities', backward_key='user_id')
+                                      through='stocks_userequity', backward_key='user_id')
 
     full = Manager()
 

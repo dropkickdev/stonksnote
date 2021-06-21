@@ -145,22 +145,23 @@ async def create_options():
 
 @fixturerouter.get('/taxonomy', summary='Taxonomy entries. Users required via the /users endpoint.')
 async def create_taxonomy():
-    try:
-        usermod = await UserMod.get(email=VERIFIED_EMAIL_DEMO).only('id')
-        ll = []
-        for tier, val in taxonomy_dict.items():
-            # Create the base
-            await Tax.create(tier='base', name=tier, author=usermod)
-            base = await Tax.get(tier='base', name=tier).only('id')
-
-            for tax_dict in val:
-                ll.append(Tax(tier=tier, **tax_dict, author=usermod, parent=base))
-                red.set(f'{tier}-{tax_dict.get("name")}', tax_dict, ttl=-1)
-        await Tax.bulk_create(ll)
-
-        return True
-    except Exception as e:
-        return e
+    # try:
+    #     usermod = await UserMod.get(email=VERIFIED_EMAIL_DEMO).only('id')
+    #     ll = []
+    #     for tier, val in taxonomy_dict.items():
+    #         # Create the base
+    #         await Tax.create(tier='base', name=tier, author=usermod)
+    #         base = await Tax.get(tier='base', name=tier).only('id')
+    #
+    #         for tax_dict in val:
+    #             ll.append(Tax(tier=tier, **tax_dict, author=usermod, parent=base))
+    #             red.set(f'{tier}-{tax_dict.get("name")}', tax_dict, ttl=-1)
+    #     await Tax.bulk_create(ll)
+    #
+    #     return True
+    # except Exception as e:
+    #     return e
+    pass
 
 
 

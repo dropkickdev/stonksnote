@@ -9,7 +9,7 @@ from app.authentication.models.core import DTMixin, SharedMixin
 
 class Equity(DTMixin, SharedMixin, models.Model):
     code = fields.CharField(max_length=10)
-    exchange = fields.ForeignKeyField('models.Taxonomy', related_name='exchange_equity')
+    exchange = fields.ForeignKeyField('models.Taxonomy', related_name='exchange_equities')
     name = fields.CharField(max_length=191, default='')
     
     country = fields.CharField(max_length=2, default='')
@@ -25,19 +25,20 @@ class Equity(DTMixin, SharedMixin, models.Model):
         return modstr(self, 'code')
 
     
-class UserEquities(models.Model):
+class UserEquity(models.Model):
     user = fields.ForeignKeyField('models.UserMod', related_name='userequities')
     equity = fields.ForeignKeyField('models.Equity', related_name='userequities')
+    stage = fields.ForeignKeyField('models.Taxonomy', related_name='stage_equities', null=True)
+    meta = fields.JSONField(null=True)
     created_at = fields.DatetimeField(auto_now_add=True)
 
     groups = fields.ManyToManyField('models.Taxonomy', related_name='userequities',
-                                    through='stocks_userequitiesgroups',
+                                    through='stocks_userequitygroups',
                                     backward_key='userequity_id')
-    
     full = Manager()
     
     class Meta:
-        table = 'stocks_userequities'
+        table = 'stocks_userequity'
         unique_together = (('user', 'equity'),)
         manager = ActiveManager()
         
@@ -136,7 +137,7 @@ class Transaction(DTMixin, SharedMixin, models.Model):
     status = fields.CharField(max_length=20)                        # Buy/Sell/Others
     amount = fields.DecimalField(max_digits=13, decimal_places=2, default=0)
     trade = fields.ForeignKeyField('models.Trade', related_name='transactions', null=True)
-    author = fields.ForeignKeyField('models.UserMod', related_name='author_transaction')
+    author = fields.ForeignKeyField('models.UserMod', related_name='author_transactions')
 
     class Meta:
         table = 'stocks_transaction'

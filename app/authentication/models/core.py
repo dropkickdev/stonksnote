@@ -51,6 +51,7 @@ class Taxonomy(DTMixin, SharedMixin, models.Model):
     name = fields.CharField(max_length=191)
     tier = fields.CharField(max_length=20)
     label = fields.CharField(max_length=191, default='')        # Longer version of name
+    description = fields.CharField(max_length=191, default='')
     sort = fields.SmallIntField(default=100)
     author = fields.ForeignKeyField('models.UserMod', related_name='tax_of_author')
     parent = fields.ForeignKeyField('models.Taxonomy', related_name='tax_of_parent', null=True)
