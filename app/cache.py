@@ -12,7 +12,7 @@ red = Red(**s.CACHE_CONFIG.get('default'))
 
 def makesafe(val) -> Union[str, int]:
     """
-    Moke lists, sets, and bool safe as a string. Used for hash values.
+    Make lists, sets, and bool safe as a string. Used for hash values.
     This literally adds quotes to make it safe for saving as a hash value in redis.
     :param val: Item to make into a string
     :return:    str
