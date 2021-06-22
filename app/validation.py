@@ -71,3 +71,5 @@ class UniqueFieldsRegistrationVM(BaseModel):
     email: EmailStr
     username: str = Field('', min_length=s.USERNAME_MIN)
     password: SecretStr = Field(..., min_length=s.PASSWORD_MIN)
+    
+

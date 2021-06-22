@@ -44,7 +44,8 @@ class Base(BaseSettings):
     }
     CACHE_GROUPNAME: str = 'group-{}'
     CACHE_USERNAME: str = 'user-{}'
-    CACHE_TAXONOMY: str = 'taxonomy-{}'
+    CACHE_TAXONOMY: str = 'taxonomy-{}-{}'
+    CACHE_TAXONOMY_SEARCH: str = 'taxonomy-{}-*'
     
     # Account
     USERNAME_MIN: int = Field(4, ge=4, le=10)

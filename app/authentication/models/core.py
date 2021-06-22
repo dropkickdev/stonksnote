@@ -5,6 +5,8 @@ from tortoise import models, fields
 from tortoise.manager import Manager
 from limeutils import modstr
 
+from app.cache import red
+from app.settings import settings as s
 from app.authentication.models.manager import ActiveManager
 
 
@@ -17,12 +19,20 @@ class DTMixin(object):
 class SharedMixin(object):
     full = Manager()
     
-    def to_dict(self, exclude: Optional[List[str]] = None):
+    def to_dict(self, *, exclude: Optional[List[str]] = None, only: Optional[List[str]] = None):
+        """
+        Convert an object to a dict
+        :param exclude: Field names to exclude. If empty then all fields are taken.
+        :param only:    Only use these names. If empty then the object's fields are used.
+        :return:        dict
+        """
         d = {}
         exclude = ['created_at', 'deleted_at', 'updated_at'] if exclude is None else exclude
-        for field in self._meta.db_fields:      # noqa
-            if hasattr(self, field) and field not in exclude:
-                d[field] = getattr(self, field)
+        fieldlist = self._meta.db_fields if only is None else only
+        for field in fieldlist:      # noqa
+            if hasattr(self, field):
+                if (only and field in only) or field not in exclude:
+                    d[field] = getattr(self, field)
         return d
 
     async def soft_delete(self):
@@ -66,7 +76,41 @@ class Taxonomy(DTMixin, SharedMixin, models.Model):
 
     def __str__(self):
         return modstr(self, 'name')
-
+    
+    @classmethod
+    async def get_and_cache(cls, tier: str, name: str):
+        if tax := await cls.get_or_none(tier=tier, name=name).only('id'):
+            tax_dict = tax.to_dict()
+            partialkey = s.CACHE_TAXONOMY.format(tier, name)
+            red.set(partialkey, tax_dict, clear=True)
+            return tax
+        
+    # TESTME: Untested
+    @classmethod
+    async def get_tax(cls, tier: str, name: Optional[str] = None):
+        if name:
+            partialkey = s.CACHE_TAXONOMY.format(tier, name)
+            if tax_dict := red.get(partialkey):
+                return tax_dict
+            else:
+                tax = await cls.get_and_cache(tier, name)
+                tax_dict = tax.to_dict()
+                return tax_dict
+        else:
+            taxes = []
+            partialkey = s.CACHE_TAXONOMY_SEARCH.format(tier)
+            if keynames_list := red.keys(partialkey):
+                for tax in keynames_list:
+                    taxes.append(red.get_tax(tier, tax))
+            else:
+                taxes = await cls.filter(tier=tier).values('id', 'name', 'description')
+            return taxes
+        
+    
+    @classmethod
+    async def get_buy_stages(cls):
+        return await cls.get_tax('buy_stage')
+        
 
 # # class HashMod(SharedMixin, models.Model):
 # #     user = fields.ForeignKeyField('models.UserMod', related_name='hashes')
