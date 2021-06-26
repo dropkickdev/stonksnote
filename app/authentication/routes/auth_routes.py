@@ -107,7 +107,7 @@ async def login(response: Response, credentials: OAuth2PasswordRequestForm = Dep
     return data
 
 
-@authrouter.post("/logout", dependencies=[Depends(current_user)])
+@authrouter.get("/logout", dependencies=[Depends(current_user)])
 async def logout(response: Response):
     """
     Logout the user by deleting all tokens. Only unexpired tokens can logout.
