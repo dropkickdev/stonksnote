@@ -15,6 +15,7 @@ from app.authentication.models.core import DTMixin, ActiveManager, SharedMixin, 
 
 class UserMod(DTMixin, TortoiseBaseUserModel):
     username = fields.CharField(max_length=50, null=True)
+    display = fields.CharField(max_length=50, null=True)
     first_name = fields.CharField(max_length=191, default='')
     middle_name = fields.CharField(max_length=191, default='')
     last_name = fields.CharField(max_length=191, default='')
@@ -59,15 +60,15 @@ class UserMod(DTMixin, TortoiseBaseUserModel):
     def fullname(self):
         return f'{self.first_name} {self.last_name}'.strip()
 
-    @property
-    async def display_name(self):
-        if self.username:
-            return self.username
-        elif self.fullname:
-            return self.fullname.split()[0]
-        else:
-            emailname = self.email.split('@')[0]
-            return ' '.join(emailname.split('.'))
+    # @property
+    # async def display_name(self):
+    #     if self.username:
+    #         return self.username
+    #     elif self.fullname:
+    #         return self.fullname.split()[0]
+    #     else:
+    #         emailname = self.email.split('@')[0]
+    #         return ' '.join(emailname.split('.'))
 
     # @classmethod
     # def has_perm(cls, id: str, *perms):

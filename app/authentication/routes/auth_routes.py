@@ -100,7 +100,8 @@ async def login(response: Response, credentials: OAuth2PasswordRequestForm = Dep
     
     data = {
         **await jwtauth.get_login_response(user, response),
-        'is_verified': user.is_verified
+        'is_verified': user.is_verified,
+        'display': user.display,
     }
     if not user.is_verified:
         data.update(dict(details='User is not verified yet so user cannot log in.'))

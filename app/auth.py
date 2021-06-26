@@ -22,7 +22,8 @@ from app.fixtures.fixturesdata import options_dict
 
 
 
-userdb = TortoiseUDB(UserDB, UserMod, include=['username', 'timezone'], alternate=UserDBComplete)
+userdb = TortoiseUDB(UserDB, UserMod, include=['username', 'display', 'timezone'],
+                     alternate=UserDBComplete)
 jwtauth = JWTAuthentication(secret=s.SECRET_KEY, lifetime_seconds=s.ACCESS_TOKEN_EXPIRE)
 fapiuser = FastAPIUsers(userdb, [jwtauth], User, UserCreate, UserUpdate, UserDB)
 

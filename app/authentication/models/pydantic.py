@@ -50,6 +50,7 @@ class UserDB(User, models.BaseUserDB, PydanticModel):
       so add them when instantiating TortoiseUDB in auth_routes.py
     """
     username: Optional[str] = ''
+    display: Optional[str] = ''
     timezone: Optional[str] = Field(s.USER_TIMEZONE, max_length=10)
     is_verified = s.AUTO_VERIFY
     
