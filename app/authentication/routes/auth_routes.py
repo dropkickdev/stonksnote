@@ -108,7 +108,9 @@ async def login(response: Response, credentials: OAuth2PasswordRequestForm = Dep
     return data
 
 
-@authrouter.get("/logout", dependencies=[Depends(current_user)])
+# TODO: Put this back once you're able to renew your access_token using the refresh_token
+# @authrouter.get("/logout", dependencies=[Depends(current_user)])
+@authrouter.get("/logout")
 async def logout(response: Response):
     """
     Logout the user by deleting all tokens. Only unexpired tokens can logout.
