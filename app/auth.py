@@ -178,21 +178,17 @@ async def update_refresh_token(user, token: TokenMod = None) -> dict:
 
 
 def refresh_cookie(name: str, token: dict, **kwargs):
-    if token['expires'] <= datetime.now(tz=pytz.UTC):
-        raise ValueError('Cookie expires date must be greater than the date now')
-
-    # now = datetime.now(tz=pytz.UTC)
-    # soo = token['expires']
-    # ic('[Now]', now.strftime('%Y-%m-%d %-H:%M %p'))
-    # ic('[Exp]', soo.strftime('%Y-%m-%d %-H:%M %p'))
-    # ic('[Seconds1]', (soo - now).total_seconds())
-    # ic('[Seconds2]', s.REFRESH_TOKEN_EXPIRE)
-    
+    """
+    Set the cookie data
+    :param name:    Cookie name
+    :param token:   Token data
+    :param kwargs:  Cookie kwargs
+    :return:        Data to become a cookie
+    """
     cookie_data = {
         'key': name,
         'value': token['value'],
         'httponly': True,
-        # 'expires': expires.total_seconds(),
         'expires': s.REFRESH_TOKEN_EXPIRE,
         'path': '/',
         **kwargs,
