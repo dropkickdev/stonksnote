@@ -45,6 +45,7 @@ async def new_access_token(response: Response, refresh_token: Optional[str] = Co
 
     The refresh_token is renewed for every login to prevent accidental logouts.
     """
+    ic(refresh_token)
     try:
         if refresh_token is None:
             raise Exception
@@ -90,7 +91,7 @@ async def login(response: Response, credentials: OAuth2PasswordRequestForm = Dep
         token = await update_refresh_token(user)
     except DoesNotExist:
         token = await create_refresh_token(user)
-    
+
     cookie = refresh_cookie(REFRESH_TOKEN_KEY, token)
     response.set_cookie(**cookie)
     

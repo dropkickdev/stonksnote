@@ -181,12 +181,19 @@ def refresh_cookie(name: str, token: dict, **kwargs):
     if token['expires'] <= datetime.now(tz=pytz.UTC):
         raise ValueError('Cookie expires date must be greater than the date now')
 
-    expires = token['expires'] - datetime.now(tz=pytz.UTC)
+    # now = datetime.now(tz=pytz.UTC)
+    # soo = token['expires']
+    # ic('[Now]', now.strftime('%Y-%m-%d %-H:%M %p'))
+    # ic('[Exp]', soo.strftime('%Y-%m-%d %-H:%M %p'))
+    # ic('[Seconds1]', (soo - now).total_seconds())
+    # ic('[Seconds2]', s.REFRESH_TOKEN_EXPIRE)
+    
     cookie_data = {
         'key': name,
         'value': token['value'],
         'httponly': True,
-        'expires': expires.seconds,
+        # 'expires': expires.total_seconds(),
+        'expires': s.REFRESH_TOKEN_EXPIRE,
         'path': '/',
         **kwargs,
     }
