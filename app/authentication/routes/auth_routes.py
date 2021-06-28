@@ -36,7 +36,16 @@ authrouter.include_router(fapiuser.get_register_router(register_callback))
 # )
 
 
-# ATM you will have to test this manually.
+
+@authrouter.get('/reload_user_data')
+async def get_user_data(_: Response, user=Depends(current_user)):
+    return {
+        'display': user.display,
+        'email': user.email,
+        'is_verified': user.is_verified
+    }
+
+
 @authrouter.post('/token')
 async def new_access_token(response: Response, refresh_token: Optional[str] = Cookie(None)):
     """
@@ -45,7 +54,6 @@ async def new_access_token(response: Response, refresh_token: Optional[str] = Co
 
     The refresh_token is renewed for every login to prevent accidental logouts.
     """
-    ic(refresh_token)
     try:
         if refresh_token is None:
             raise Exception
@@ -56,6 +64,7 @@ async def new_access_token(response: Response, refresh_token: Optional[str] = Co
         user = await userdb.get(token.author_id)
         
         mins = expires(token.expires)
+        # ic('[Minutes]', mins)
         if mins <= 0:
             raise Exception
         elif mins <= s.REFRESH_TOKEN_CUTOFF:
@@ -69,7 +78,10 @@ async def new_access_token(response: Response, refresh_token: Optional[str] = Co
             cookie = refresh_cookie(REFRESH_TOKEN_KEY, token)
             response.set_cookie(**cookie)
         
-        return await jwtauth.get_login_response(user, response)
+        access_token = await jwtauth.get_login_response(user, response)
+        access_token = access_token.get('access_token')
+        # ic(access_token)
+        return access_token
     
     except Exception:
         del response.headers['authorization']
